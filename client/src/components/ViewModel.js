@@ -19,6 +19,23 @@ function ViewModel() {
     fetchScenario();
   }, [id]);
 
+  // Initialize formData when scenario loads
+  useEffect(() => {
+    if (scenario) {
+      setFormData({
+        name: scenario.name,
+        revenue_model: scenario.revenue_model,
+        timeFrame: scenario.assumptions.timeFrame || 12,
+        unitPrice: scenario.assumptions.unitPrice || 0,
+        initialUnits: scenario.assumptions.initialUnits || 0,
+        subscriptionPrice: scenario.assumptions.subscriptionPrice || 0,
+        initialSubscribers: scenario.assumptions.initialSubscribers || 0,
+        growthRate: scenario.assumptions.growthRate || 0,
+        churnRate: scenario.assumptions.churnRate || 0
+      });
+    }
+  }, [scenario]);
+
   const fetchScenario = async () => {
     try {
       const response = await axios.get(`${API_URL}/scenarios/${id}`, {
@@ -32,6 +49,22 @@ function ViewModel() {
       setError('Failed to load scenario');
       setLoading(false);
     }
+  };
+
+  // Convert scenario data to formData format for ResultsView
+  const getFormData = () => {
+    if (!scenario) return null;
+    return {
+      name: scenario.name,
+      revenue_model: scenario.revenue_model,
+      timeFrame: scenario.assumptions.timeFrame || 12,
+      unitPrice: scenario.assumptions.unitPrice || 0,
+      initialUnits: scenario.assumptions.initialUnits || 0,
+      subscriptionPrice: scenario.assumptions.subscriptionPrice || 0,
+      initialSubscribers: scenario.assumptions.initialSubscribers || 0,
+      growthRate: scenario.assumptions.growthRate || 0,
+      churnRate: scenario.assumptions.churnRate || 0
+    };
   };
 
   const handleRecalculate = async () => {
@@ -81,36 +114,6 @@ function ViewModel() {
       </div>
     );
   }
-
-  // Convert scenario data to formData format for ResultsView
-  const getFormData = () => ({
-    name: scenario.name,
-    revenue_model: scenario.revenue_model,
-    timeFrame: scenario.assumptions.timeFrame || 12,
-    unitPrice: scenario.assumptions.unitPrice || 0,
-    initialUnits: scenario.assumptions.initialUnits || 0,
-    subscriptionPrice: scenario.assumptions.subscriptionPrice || 0,
-    initialSubscribers: scenario.assumptions.initialSubscribers || 0,
-    growthRate: scenario.assumptions.growthRate || 0,
-    churnRate: scenario.assumptions.churnRate || 0
-  });
-
-  // Initialize formData when scenario loads
-  useEffect(() => {
-    if (scenario) {
-      setFormData({
-        name: scenario.name,
-        revenue_model: scenario.revenue_model,
-        timeFrame: scenario.assumptions.timeFrame || 12,
-        unitPrice: scenario.assumptions.unitPrice || 0,
-        initialUnits: scenario.assumptions.initialUnits || 0,
-        subscriptionPrice: scenario.assumptions.subscriptionPrice || 0,
-        initialSubscribers: scenario.assumptions.initialSubscribers || 0,
-        growthRate: scenario.assumptions.growthRate || 0,
-        churnRate: scenario.assumptions.churnRate || 0
-      });
-    }
-  }, [scenario]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -378,9 +381,19 @@ function ViewModel() {
     );
   }
 
+  const currentFormData = formData || getFormData();
+  
+  if (!currentFormData) {
+    return (
+      <div className="container">
+        <div className="loading">Loading...</div>
+      </div>
+    );
+  }
+
   return (
     <ResultsView
-      formData={getFormData()}
+      formData={currentFormData}
       results={scenario.results}
       onBack={handleEditAssumptions}
       onSave={handleSave}
