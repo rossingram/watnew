@@ -769,6 +769,7 @@ function calculateProjections(revenueModel, assumptions) {
     const growthRate = (assumptions.growthRate || 0) / 100;
 
     for (let i = 0; i < periods; i++) {
+      // Calculate revenue from current unit count
       const revenue = units * price;
       totalRevenue += revenue;
       projections.push({
@@ -776,6 +777,9 @@ function calculateProjections(revenueModel, assumptions) {
         revenue: Math.round(revenue * 100) / 100,
         units: Math.round(units)
       });
+      
+      // Update units for NEXT period
+      // This way Month 1 uses initial units, Month 2+ reflect growth
       units = units * (1 + growthRate);
     }
   } else if (revenueModel === 'subscription') {
@@ -785,9 +789,7 @@ function calculateProjections(revenueModel, assumptions) {
     const churnRate = (assumptions.churnRate || 0) / 100;
 
     for (let i = 0; i < periods; i++) {
-      // Apply churn first, then growth
-      subscribers = subscribers * (1 - churnRate);
-      subscribers = subscribers * (1 + growthRate);
+      // Calculate revenue from current subscriber count
       const revenue = subscribers * price;
       totalRevenue += revenue;
       projections.push({
@@ -796,6 +798,11 @@ function calculateProjections(revenueModel, assumptions) {
         subscribers: Math.round(subscribers),
         mrr: Math.round(revenue * 100) / 100
       });
+      
+      // Update subscribers for NEXT period (apply churn first, then growth)
+      // This way Month 1 uses initial subscribers, Month 2+ reflect changes
+      subscribers = subscribers * (1 - churnRate);
+      subscribers = subscribers * (1 + growthRate);
     }
   } else if (revenueModel === 'hybrid') {
     let units = assumptions.initialUnits || 0;
@@ -806,9 +813,8 @@ function calculateProjections(revenueModel, assumptions) {
     const churnRate = (assumptions.churnRate || 0) / 100;
 
     for (let i = 0; i < periods; i++) {
+      // Calculate revenue from current counts
       const oneTimeRevenue = units * unitPrice;
-      subscribers = subscribers * (1 - churnRate);
-      subscribers = subscribers * (1 + growthRate);
       const subscriptionRevenue = subscribers * subscriptionPrice;
       const totalPeriodRevenue = oneTimeRevenue + subscriptionRevenue;
       totalRevenue += totalPeriodRevenue;
@@ -821,7 +827,12 @@ function calculateProjections(revenueModel, assumptions) {
         units: Math.round(units),
         subscribers: Math.round(subscribers)
       });
+      
+      // Update counts for NEXT period
+      // This way Month 1 uses initial values, Month 2+ reflect changes
       units = units * (1 + growthRate);
+      subscribers = subscribers * (1 - churnRate);
+      subscribers = subscribers * (1 + growthRate);
     }
   }
 
