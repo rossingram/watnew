@@ -49,13 +49,31 @@ async function findAvailablePort(startPort) {
 
 const PORT = process.env.PORT ? parseInt(process.env.PORT) : null;
 
+// CORS configuration - allow production domains
+const allowedOrigins = process.env.NODE_ENV === 'production' 
+  ? ['https://watnew.me', 'https://www.watnew.me']
+  : ['http://localhost:3000', 'http://localhost:3001'];
+
 app.use(cors({
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true
+}));
   origin: 'http://localhost:3000',
   credentials: true
 }));
 
 // Initialize database (needed for webhook)
-const adapter = new FileSync(path.join(__dirname, 'database.json'));
+// Use persistent volume path in production, local path in development
+const dbPath = process.env.DATABASE_PATH || path.join(__dirname, 'database.json');
+const adapter = new FileSync(dbPath);
 const db = low(adapter);
 
 // Set default database structure
