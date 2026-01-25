@@ -51,18 +51,30 @@ const PORT = process.env.PORT ? parseInt(process.env.PORT) : null;
 
 // CORS configuration - allow production domains
 const allowedOrigins = process.env.NODE_ENV === 'production' 
-  ? ['https://watnew.me', 'https://www.watnew.me']
+  ? [
+      'https://watnew.me', 
+      'https://www.watnew.me',
+      // Allow Railway URLs during deployment/testing
+      ...(process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : [])
+    ]
   : ['http://localhost:3000', 'http://localhost:3001'];
 
 app.use(cors({
   origin: function (origin, callback) {
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
+    
+    // Check if origin is in allowed list
     if (allowedOrigins.indexOf(origin) !== -1) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
+      return callback(null, true);
     }
+    
+    // In production, also allow Railway URLs (for testing before custom domain)
+    if (process.env.NODE_ENV === 'production' && origin.endsWith('.up.railway.app')) {
+      return callback(null, true);
+    }
+    
+    callback(new Error('Not allowed by CORS'));
   },
   credentials: true
 }));

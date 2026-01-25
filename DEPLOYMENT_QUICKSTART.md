@@ -43,9 +43,12 @@ The frontend already uses `process.env.REACT_APP_API_URL`, so we just need to se
    STRIPE_WEBHOOK_SECRET=whsec_your_secret
    STRIPE_PUBLISHABLE_KEY=pk_live_your_key
    NODE_ENV=production
+   ALLOWED_ORIGINS=https://watnew-frontend.up.railway.app,https://watnew.me,https://www.watnew.me
    ```
+   - Replace `watnew-frontend.up.railway.app` with your actual frontend Railway URL (you'll get this after deploying the frontend in step 2.3)
 6. Railway will automatically deploy
-7. Copy the generated URL (e.g., `watnew-api.up.railway.app`)
+7. Copy the **Public Networking URL** (not the private one). You'll find this in the service settings under "Networking" → "Public Networking". It will look like `watnew-api.up.railway.app`
+   - **Important**: Use the PUBLIC URL, not the private networking URL. The frontend needs to access this from users' browsers.
 
 ### 2.3 Deploy Frontend
 
@@ -65,10 +68,11 @@ Then:
 1. In the same project, click "New" → "GitHub Repo" again
 2. Select the same repository
 3. Set **Root Directory** to `client`
-4. Add environment variable:
+4. Add environment variable (use the PUBLIC URL from step 2.2):
    ```
    REACT_APP_API_URL=https://watnew-api.up.railway.app/api
    ```
+   - Replace `watnew-api.up.railway.app` with your actual backend's **public networking URL**
 5. Railway will build and deploy
 6. Copy the frontend URL
 
