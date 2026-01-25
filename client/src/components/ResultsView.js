@@ -111,7 +111,15 @@ function ResultsView({ formData, results, onBack, onSave, saving }) {
       <div className="results-header">
         <h1>{formData.name}</h1>
         <div className="results-actions">
-          <button onClick={onBack} className="btn btn-secondary">
+          <button 
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onBack();
+            }} 
+            className="btn btn-secondary"
+            type="button"
+          >
             Edit Assumptions
           </button>
           <button onClick={exportToPDF} className="btn btn-secondary">
