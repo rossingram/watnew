@@ -24,7 +24,6 @@ function LandingPage() {
       <section className="hero">
         <div className="container">
           <div className="hero-content">
-            <div className="hero-tagline">What will your new product make?</div>
             <h1 className="hero-title">
               Find Out in Minutes, Not Hours
             </h1>
