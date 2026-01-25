@@ -7,7 +7,7 @@ import './Billing.css';
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001/api';
 
 function Billing() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [subscription, setSubscription] = useState(null);
@@ -17,25 +17,61 @@ function Billing() {
   const success = searchParams.get('success');
 
   useEffect(() => {
+    // Wait for auth to finish loading
+    if (authLoading) return;
+
+    // Check if user is logged in
+    if (!user) {
+      console.error('User not authenticated');
+      navigate('/login');
+      return;
+    }
+
+    // Check if token exists
+    const token = localStorage.getItem('token');
+    if (!token) {
+      console.error('No authentication token found');
+      navigate('/login');
+      return;
+    }
+
     if (success === 'true') {
       // Refresh subscription status after successful payment
       fetchSubscriptionStatus();
     } else {
       fetchSubscriptionStatus();
     }
-  }, [success]);
+  }, [success, navigate, user, authLoading]);
 
   const fetchSubscriptionStatus = async () => {
     try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        console.error('No token available');
+        navigate('/login');
+        return;
+      }
+
+      // Ensure axios has the token in default headers (set by AuthContext)
+      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+
       const response = await axios.get(`${API_URL}/subscription/status`, {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`
+          Authorization: `Bearer ${token}`
         }
       });
       setSubscription(response.data);
       setLoading(false);
     } catch (error) {
       console.error('Error fetching subscription:', error);
+      console.error('Error response:', error.response?.data);
+      if (error.response?.status === 401 || error.response?.status === 403) {
+        // Token expired or invalid
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        delete axios.defaults.headers.common['Authorization'];
+        navigate('/login');
+      }
       setLoading(false);
     }
   };
@@ -43,12 +79,20 @@ function Billing() {
   const handleManageBilling = async () => {
     setPortalLoading(true);
     try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        navigate('/login');
+        return;
+      }
+
+      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+
       const response = await axios.post(
         `${API_URL}/subscription/create-portal`,
         {},
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`
+            Authorization: `Bearer ${token}`
           }
         }
       );
@@ -65,12 +109,20 @@ function Billing() {
   const handleSyncSubscription = async () => {
     setSyncing(true);
     try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        navigate('/login');
+        return;
+      }
+
+      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+
       const response = await axios.post(
         `${API_URL}/subscription/sync`,
         {},
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`
+            Authorization: `Bearer ${token}`
           }
         }
       );
@@ -97,7 +149,7 @@ function Billing() {
     });
   };
 
-  if (loading) {
+  if (authLoading || loading) {
     return (
       <div className="container">
         <div className="loading">Loading subscription status...</div>
