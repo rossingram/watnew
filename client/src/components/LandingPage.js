@@ -27,6 +27,7 @@ function LandingPage() {
             <h1 className="hero-title">
               Find Out in Minutes, Not Hours
             </h1>
+            {/* Hero tagline removed */}
             <p className="hero-subtitle">
               Watnew helps product managers answer that critical question quickly. Create revenue projections, 
               compare pricing strategies, and make data-driven decisions—no spreadsheet expertise required.
