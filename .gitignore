@@ -1,0 +1,10 @@
+node_modules/
+.env
+.DS_Store
+*.log
+dist/
+build/
+server/database.sqlite
+server/database.sqlite-journal
+server/database.json
+client/build/

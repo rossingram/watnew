@@ -1,0 +1,14 @@
+{
+  "watch": ["index.js", "*.js"],
+  "ignore": ["node_modules", "database.json"],
+  "ext": "js,json",
+  "exec": "node index.js",
+  "restartable": "rs",
+  "env": {
+    "NODE_ENV": "development"
+  },
+  "events": {
+    "restart": "echo 'Server restarted'"
+  },
+  "delay": 1000
+}
