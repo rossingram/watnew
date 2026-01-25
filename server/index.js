@@ -66,9 +66,6 @@ app.use(cors({
   },
   credentials: true
 }));
-  origin: 'http://localhost:3000',
-  credentials: true
-}));
 
 // Initialize database (needed for webhook)
 // Use persistent volume path in production, local path in development
