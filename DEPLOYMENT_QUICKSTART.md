@@ -49,6 +49,19 @@ The frontend already uses `process.env.REACT_APP_API_URL`, so we just need to se
 
 ### 2.3 Deploy Frontend
 
+**Important**: Before deploying, ensure `package-lock.json` exists in the `client` directory. If it doesn't exist or is out of sync, run:
+
+```bash
+cd client
+rm -f package-lock.json  # if it exists but is broken
+npm install  # This will regenerate package-lock.json
+git add package-lock.json
+git commit -m "Regenerate package-lock.json"
+git push
+```
+
+Then:
+
 1. In the same project, click "New" → "GitHub Repo" again
 2. Select the same repository
 3. Set **Root Directory** to `client`
@@ -58,6 +71,8 @@ The frontend already uses `process.env.REACT_APP_API_URL`, so we just need to se
    ```
 5. Railway will build and deploy
 6. Copy the frontend URL
+
+**Note**: If you get a `package-lock.json` sync error, Railway will use `npm install` instead of `npm ci` (configured via `nixpacks.toml`).
 
 ### 2.4 Configure Custom Domain
 
