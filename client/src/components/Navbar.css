@@ -1,7 +1,7 @@
 .navbar {
   background-color: #fff;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  padding: 15px 0;
+  box-shadow: 0 1px 0 rgba(0,0,0,0.06);
+  padding: 16px 0;
   margin-bottom: 20px;
 }
 
@@ -21,15 +21,12 @@
 .brand-name {
   font-size: 20px;
   font-weight: 800;
-  background: linear-gradient(135deg, #449dd1 0%, #192bc2 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: #1a1d24;
 }
 
 .brand-tagline {
   font-size: 11px;
-  color: #666;
+  color: #64748b;
   font-weight: 400;
   margin-top: 2px;
 }
@@ -41,17 +38,17 @@
 }
 
 .navbar-link {
-  color: #333;
+  color: #475569;
   text-decoration: none;
   font-weight: 500;
 }
 
 .navbar-link:hover {
-  color: #449dd1;
+  color: #192bc2;
 }
 
 .navbar-user {
-  color: #666;
+  color: #64748b;
   font-size: 14px;
 }
 

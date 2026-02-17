@@ -3,7 +3,7 @@
 }
 
 .billing-header h1 {
-  color: #333;
+  color: #1a1d24;
   margin-bottom: 20px;
 }
 
@@ -23,7 +23,8 @@
   background: white;
   border-radius: 12px;
   padding: 40px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(0,0,0,0.06);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
   margin-bottom: 40px;
 }
 
@@ -52,12 +53,12 @@
 
 .subscription-status h2 {
   font-size: 32px;
-  color: #333;
+  color: #1a1d24;
   margin-bottom: 30px;
 }
 
 .subscription-details {
-  background: #f8f9fa;
+  background: #f5f7fa;
   border-radius: 8px;
   padding: 30px;
   margin: 30px 0;
@@ -68,7 +69,7 @@
   display: flex;
   justify-content: space-between;
   padding: 12px 0;
-  border-bottom: 1px solid #e0e0e0;
+  border-bottom: 1px solid rgba(0,0,0,0.08);
 }
 
 .detail-item:last-child {
@@ -84,23 +85,23 @@
 
 .detail-label {
   font-weight: 500;
-  color: #666;
+  color: #64748b;
 }
 
 .detail-value {
   font-weight: 600;
-  color: #333;
+  color: #1a1d24;
 }
 
 .billing-note {
   font-size: 14px;
-  color: #666;
+  color: #64748b;
   margin-top: 20px;
 }
 
 .subscription-message {
   font-size: 18px;
-  color: #666;
+  color: #64748b;
   margin-bottom: 30px;
 }
 
@@ -146,12 +147,13 @@
   background: white;
   border-radius: 12px;
   padding: 40px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(0,0,0,0.06);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
 }
 
 .billing-info h3 {
   font-size: 24px;
-  color: #333;
+  color: #1a1d24;
   margin-bottom: 30px;
   text-align: center;
 }
@@ -164,18 +166,18 @@
 
 .info-item {
   padding: 20px;
-  background: #f8f9fa;
+  background: #f5f7fa;
   border-radius: 8px;
 }
 
 .info-item h4 {
   font-size: 18px;
-  color: #333;
+  color: #1a1d24;
   margin-bottom: 10px;
 }
 
 .info-item p {
-  color: #666;
+  color: #64748b;
   line-height: 1.6;
 }
 
@@ -183,7 +185,7 @@
   text-align: center;
   padding: 60px 20px;
   font-size: 18px;
-  color: #666;
+  color: #64748b;
 }
 
 @media (max-width: 768px) {

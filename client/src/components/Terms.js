@@ -109,13 +109,31 @@ function Terms() {
           </section>
 
           <section>
-            <h2>9. Contact Information</h2>
+            <h2>9. Governing Law</h2>
+            <p>
+              These Terms shall be governed by and construed in accordance with the laws of the United States 
+              and the state in which Watnew operates, without regard to its conflict of law provisions. Any 
+              disputes arising from these Terms or your use of the Service shall be resolved in the courts of 
+              that jurisdiction.
+            </p>
+          </section>
+
+          <section>
+            <h2>10. Severability</h2>
+            <p>
+              If any provision of these Terms is held to be invalid or unenforceable, the remaining provisions 
+              will continue in full force and effect.
+            </p>
+          </section>
+
+          <section>
+            <h2>11. Contact Information</h2>
             <p>
               If you have any questions about these Terms, please contact us at:
             </p>
             <p>
-              <strong>Email:</strong> support@watnew.com<br />
-              <strong>Website:</strong> <Link to="/">watnew.com</Link>
+              <strong>Email:</strong> <a href="mailto:help@watnew.me">help@watnew.me</a><br />
+              <strong>Website:</strong> <Link to="/">watnew.me</Link>
             </p>
           </section>
         </div>

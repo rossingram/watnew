@@ -334,6 +334,7 @@ app.get('/api/scenarios', authenticateToken, requireSubscription, (req, res) => 
       revenue_model: scenario.revenue_model,
       assumptions: scenario.assumptions,
       results: scenario.results,
+      cases: scenario.cases || null,
       created_at: scenario.created_at,
       updated_at: scenario.updated_at
     })));
@@ -358,6 +359,7 @@ app.get('/api/scenarios/:id', authenticateToken, requireSubscription, (req, res)
       revenue_model: scenario.revenue_model,
       assumptions: scenario.assumptions,
       results: scenario.results,
+      cases: scenario.cases || null,
       created_at: scenario.created_at,
       updated_at: scenario.updated_at
     });
@@ -366,54 +368,62 @@ app.get('/api/scenarios/:id', authenticateToken, requireSubscription, (req, res)
   }
 });
 
-app.post('/api/scenarios', authenticateToken, requireSubscription, [
-  body('name').notEmpty().trim(),
-  body('revenue_model').isIn(['one-time', 'subscription', 'hybrid']),
-  body('assumptions').isObject()
-], (req, res) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
-  }
+app.post('/api/scenarios', authenticateToken, requireSubscription, (req, res) => {
+  const { name, revenue_model, assumptions, results, cases: casesBody } = req.body;
 
-  const { name, revenue_model, assumptions, results } = req.body;
+  const hasCases = casesBody && typeof casesBody === 'object' &&
+    casesBody.base?.assumptions && casesBody.best?.assumptions && casesBody.worst?.assumptions;
+
+  if (!name || typeof name !== 'string' || !name.trim()) {
+    return res.status(400).json({ errors: [{ msg: 'name is required' }] });
+  }
+  if (!['one-time', 'subscription', 'hybrid'].includes(revenue_model)) {
+    return res.status(400).json({ errors: [{ msg: 'revenue_model must be one-time, subscription, or hybrid' }] });
+  }
+  if (!hasCases && (!assumptions || typeof assumptions !== 'object')) {
+    return res.status(400).json({ errors: [{ msg: 'assumptions object is required when not using cases' }] });
+  }
 
   try {
     const newScenario = {
       id: getNextId('scenarios'),
       user_id: req.user.userId,
-      name,
+      name: name.trim(),
       revenue_model,
-      assumptions,
-      results: results || null,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     };
+
+    if (hasCases) {
+      newScenario.cases = {
+        base: { assumptions: casesBody.base.assumptions, results: casesBody.base.results || null },
+        best: { assumptions: casesBody.best.assumptions, results: casesBody.best.results || null },
+        worst: { assumptions: casesBody.worst.assumptions, results: casesBody.worst.results || null }
+      };
+      newScenario.assumptions = null;
+      newScenario.results = null;
+    } else {
+      newScenario.assumptions = assumptions;
+      newScenario.results = results || null;
+    }
 
     db.get('scenarios').push(newScenario).write();
 
     res.status(201).json({
       id: newScenario.id,
-      name,
+      name: newScenario.name,
       revenue_model,
-      assumptions,
-      results
+      assumptions: newScenario.assumptions,
+      results: newScenario.results,
+      cases: newScenario.cases
     });
   } catch (error) {
     res.status(500).json({ error: 'Error saving scenario' });
   }
 });
 
-app.put('/api/scenarios/:id', authenticateToken, requireSubscription, [
-  body('name').optional().notEmpty().trim(),
-  body('assumptions').optional().isObject()
-], (req, res) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
-  }
-
-  const { name, assumptions, results } = req.body;
+app.put('/api/scenarios/:id', authenticateToken, requireSubscription, (req, res) => {
+  const { name, assumptions, results, cases: casesBody } = req.body;
   const scenarioId = parseInt(req.params.id);
 
   try {
@@ -425,11 +435,21 @@ app.put('/api/scenarios/:id', authenticateToken, requireSubscription, [
       return res.status(404).json({ error: 'Scenario not found' });
     }
 
-    const updates = {};
-    if (name) updates.name = name;
-    if (assumptions) updates.assumptions = assumptions;
-    if (results !== undefined) updates.results = results;
-    updates.updated_at = new Date().toISOString();
+    const updates = { updated_at: new Date().toISOString() };
+    if (name && typeof name === 'string' && name.trim()) updates.name = name.trim();
+    if (casesBody && casesBody.base?.assumptions && casesBody.best?.assumptions && casesBody.worst?.assumptions) {
+      updates.cases = {
+        base: { assumptions: casesBody.base.assumptions, results: casesBody.base.results ?? null },
+        best: { assumptions: casesBody.best.assumptions, results: casesBody.best.results ?? null },
+        worst: { assumptions: casesBody.worst.assumptions, results: casesBody.worst.results ?? null }
+      };
+      updates.assumptions = null;
+      updates.results = null;
+    } else if (assumptions || results !== undefined) {
+      updates.cases = null;
+      if (assumptions) updates.assumptions = assumptions;
+      if (results !== undefined) updates.results = results;
+    }
 
     db.get('scenarios')
       .find({ id: scenarioId, user_id: req.user.userId })
@@ -497,21 +517,19 @@ app.get('/api/subscription/status', authenticateToken, async (req, res) => {
       try {
         const stripeSub = await stripeClient.subscriptions.retrieve(subscription.stripeSubscriptionId);
         
-        // Safely convert Stripe timestamp to ISO string
+        // Stripe API returns snake_case (current_period_end); some SDKs expose camelCase
+        const rawPeriodEnd = stripeSub.current_period_end ?? stripeSub.currentPeriodEnd;
         let currentPeriodEnd;
         try {
-          const timestamp = typeof stripeSub.currentPeriodEnd === 'number' 
-            ? stripeSub.currentPeriodEnd 
-            : parseInt(stripeSub.currentPeriodEnd);
-          
-          if (isNaN(timestamp)) {
-            console.error('Invalid timestamp from Stripe:', stripeSub.currentPeriodEnd);
+          const timestamp = typeof rawPeriodEnd === 'number'
+            ? rawPeriodEnd
+            : parseInt(rawPeriodEnd, 10);
+          if (Number.isNaN(timestamp) || timestamp <= 0) {
             currentPeriodEnd = subscription.currentPeriodEnd || new Date().toISOString();
           } else {
             currentPeriodEnd = new Date(timestamp * 1000).toISOString();
           }
         } catch (e) {
-          console.error('Error converting currentPeriodEnd in status check:', e);
           currentPeriodEnd = subscription.currentPeriodEnd || new Date().toISOString();
         }
 
@@ -762,6 +780,9 @@ function calculateProjections(revenueModel, assumptions) {
   const periods = assumptions.timeFrame || 12;
   const projections = [];
   let totalRevenue = 0;
+  let totalCost = 0;
+  const costPerUnit = assumptions.costPerUnit ?? 0;
+  const costPerSubscriber = assumptions.costPerSubscriber ?? 0;
 
   if (revenueModel === 'one-time') {
     let units = assumptions.initialUnits || 0;
@@ -769,17 +790,20 @@ function calculateProjections(revenueModel, assumptions) {
     const growthRate = (assumptions.growthRate || 0) / 100;
 
     for (let i = 0; i < periods; i++) {
-      // Calculate revenue from current unit count
       const revenue = units * price;
+      const cost = units * costPerUnit;
+      const grossProfit = revenue - cost;
+      const marginPct = revenue > 0 ? (grossProfit / revenue) * 100 : 0;
       totalRevenue += revenue;
+      totalCost += cost;
       projections.push({
         period: i + 1,
         revenue: Math.round(revenue * 100) / 100,
+        cost: Math.round(cost * 100) / 100,
+        grossProfit: Math.round(grossProfit * 100) / 100,
+        marginPct: Math.round(marginPct * 100) / 100,
         units: Math.round(units)
       });
-      
-      // Update units for NEXT period
-      // This way Month 1 uses initial units, Month 2+ reflect growth
       units = units * (1 + growthRate);
     }
   } else if (revenueModel === 'subscription') {
@@ -789,18 +813,21 @@ function calculateProjections(revenueModel, assumptions) {
     const churnRate = (assumptions.churnRate || 0) / 100;
 
     for (let i = 0; i < periods; i++) {
-      // Calculate revenue from current subscriber count
       const revenue = subscribers * price;
+      const cost = subscribers * costPerSubscriber;
+      const grossProfit = revenue - cost;
+      const marginPct = revenue > 0 ? (grossProfit / revenue) * 100 : 0;
       totalRevenue += revenue;
+      totalCost += cost;
       projections.push({
         period: i + 1,
         revenue: Math.round(revenue * 100) / 100,
+        cost: Math.round(cost * 100) / 100,
+        grossProfit: Math.round(grossProfit * 100) / 100,
+        marginPct: Math.round(marginPct * 100) / 100,
         subscribers: Math.round(subscribers),
         mrr: Math.round(revenue * 100) / 100
       });
-      
-      // Update subscribers for NEXT period (apply churn first, then growth)
-      // This way Month 1 uses initial subscribers, Month 2+ reflect changes
       subscribers = subscribers * (1 - churnRate);
       subscribers = subscribers * (1 + growthRate);
     }
@@ -813,34 +840,42 @@ function calculateProjections(revenueModel, assumptions) {
     const churnRate = (assumptions.churnRate || 0) / 100;
 
     for (let i = 0; i < periods; i++) {
-      // Calculate revenue from current counts
       const oneTimeRevenue = units * unitPrice;
       const subscriptionRevenue = subscribers * subscriptionPrice;
       const totalPeriodRevenue = oneTimeRevenue + subscriptionRevenue;
+      const cost = units * costPerUnit + subscribers * costPerSubscriber;
+      const grossProfit = totalPeriodRevenue - cost;
+      const marginPct = totalPeriodRevenue > 0 ? (grossProfit / totalPeriodRevenue) * 100 : 0;
       totalRevenue += totalPeriodRevenue;
-
+      totalCost += cost;
       projections.push({
         period: i + 1,
         revenue: Math.round(totalPeriodRevenue * 100) / 100,
         oneTimeRevenue: Math.round(oneTimeRevenue * 100) / 100,
         subscriptionRevenue: Math.round(subscriptionRevenue * 100) / 100,
+        cost: Math.round(cost * 100) / 100,
+        grossProfit: Math.round(grossProfit * 100) / 100,
+        marginPct: Math.round(marginPct * 100) / 100,
         units: Math.round(units),
         subscribers: Math.round(subscribers)
       });
-      
-      // Update counts for NEXT period
-      // This way Month 1 uses initial values, Month 2+ reflect changes
       units = units * (1 + growthRate);
       subscribers = subscribers * (1 - churnRate);
       subscribers = subscribers * (1 + growthRate);
     }
   }
 
+  const totalGrossProfit = totalRevenue - totalCost;
+  const averageGrossMarginPct = totalRevenue > 0 ? (totalGrossProfit / totalRevenue) * 100 : 0;
+
   return {
     projections,
     summary: {
       totalRevenue: Math.round(totalRevenue * 100) / 100,
       averageMonthlyRevenue: Math.round((totalRevenue / periods) * 100) / 100,
+      totalCost: Math.round(totalCost * 100) / 100,
+      totalGrossProfit: Math.round(totalGrossProfit * 100) / 100,
+      averageGrossMarginPct: Math.round(averageGrossMarginPct * 100) / 100,
       periods
     }
   };

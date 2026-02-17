@@ -69,6 +69,29 @@ function Dashboard() {
     }
   };
 
+  const handleDuplicate = async (scenario) => {
+    try {
+      const body = scenario.cases
+        ? {
+            name: `${scenario.name} (Copy)`,
+            revenue_model: scenario.revenue_model,
+            cases: scenario.cases
+          }
+        : {
+            name: `${scenario.name} (Copy)`,
+            revenue_model: scenario.revenue_model,
+            assumptions: scenario.assumptions,
+            results: scenario.results || null
+          };
+      await axios.post(`${API_URL}/scenarios`, body, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      });
+      fetchScenarios();
+    } catch (err) {
+      setError('Failed to duplicate scenario: ' + (err.response?.data?.error || err.message));
+    }
+  };
+
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString();
   };
@@ -121,9 +144,14 @@ function Dashboard() {
     <div className="container">
       <div className="dashboard-header">
         <h1>My Revenue Projections</h1>
-        <Link to="/create" className="btn btn-primary">
-          Create New Model
-        </Link>
+        <div className="dashboard-header-actions">
+          <Link to="/compare" className="btn btn-secondary">
+            Compare
+          </Link>
+          <Link to="/create" className="btn btn-primary">
+            Create New Model
+          </Link>
+        </div>
       </div>
 
       {error && error !== 'subscription_required' && <div className="error">{error}</div>}
@@ -145,18 +173,21 @@ function Dashboard() {
                   {scenario.revenue_model}
                 </span>
               </div>
-              {scenario.results && (
+              {(scenario.results || scenario.cases?.base?.results) && (
                 <div className="scenario-summary">
+                  {scenario.cases && (
+                    <span className="model-badge" style={{ marginBottom: 8, display: 'inline-block' }}>Best/Base/Worst</span>
+                  )}
                   <div className="summary-item">
                     <span className="summary-label">Total Revenue:</span>
                     <span className="summary-value">
-                      {formatCurrency(scenario.results.summary?.totalRevenue)}
+                      {formatCurrency((scenario.results || scenario.cases?.base?.results)?.summary?.totalRevenue)}
                     </span>
                   </div>
                   <div className="summary-item">
                     <span className="summary-label">Avg Monthly:</span>
                     <span className="summary-value">
-                      {formatCurrency(scenario.results.summary?.averageMonthlyRevenue)}
+                      {formatCurrency((scenario.results || scenario.cases?.base?.results)?.summary?.averageMonthlyRevenue)}
                     </span>
                   </div>
                 </div>
@@ -171,6 +202,12 @@ function Dashboard() {
                     className="btn btn-primary btn-sm"
                   >
                     View
+                  </button>
+                  <button
+                    onClick={() => handleDuplicate(scenario)}
+                    className="btn btn-secondary btn-sm"
+                  >
+                    Duplicate
                   </button>
                   <button
                     onClick={() => handleDelete(scenario.id)}

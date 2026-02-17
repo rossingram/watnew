@@ -9,9 +9,11 @@ import Billing from './components/Billing';
 import Dashboard from './components/Dashboard';
 import CreateModel from './components/CreateModel';
 import ViewModel from './components/ViewModel';
+import CompareScenarios from './components/CompareScenarios';
 import Terms from './components/Terms';
 import Privacy from './components/Privacy';
 import Navbar from './components/Navbar';
+import FintechExample from './components/FintechExample';
 import './App.css';
 
 function PrivateRoute({ children }) {
@@ -31,6 +33,7 @@ function App() {
             <Route path="/pricing" element={<Pricing />} />
             <Route path="/terms" element={<Terms />} />
             <Route path="/privacy" element={<Privacy />} />
+            <Route path="/style-guide" element={<FintechExample />} />
             <Route
               path="/billing"
               element={
@@ -64,6 +67,15 @@ function App() {
                 <PrivateRoute>
                   <Navbar />
                   <ViewModel />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/compare"
+              element={
+                <PrivateRoute>
+                  <Navbar />
+                  <CompareScenarios />
                 </PrivateRoute>
               }
             />

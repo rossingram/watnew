@@ -84,13 +84,28 @@ function Privacy() {
               <li>Opt out of marketing communications (service emails are required for account management)</li>
             </ul>
             <p>
-              To exercise these rights, contact us at support@watnew.com or use the account deletion feature 
+              To exercise these rights, contact us at <a href="mailto:help@watnew.me">help@watnew.me</a> or use the account deletion feature 
               in your billing dashboard.
+            </p>
+            <p>
+              If you are a California resident, you may have additional rights under the California Consumer 
+              Privacy Act (CCPA), including the right to know, delete, and opt out of the sale of your 
+              personal information. We do not sell personal information. For more details, see the rights 
+              above or contact us.
             </p>
           </section>
 
           <section>
-            <h2>6. Data Retention</h2>
+            <h2>6. International Data and California</h2>
+            <p>
+              Your information may be processed and stored in the United States or other countries where our 
+              service providers operate. By using the Service, you consent to such transfer. If you are located 
+              outside the U.S., your data may be subject to different privacy laws.
+            </p>
+          </section>
+
+          <section>
+            <h2>7. Data Retention</h2>
             <p>
               We retain your account information and financial models for as long as your account is active. 
               If you cancel your subscription, we will retain your data for 30 days, after which it may be 
@@ -99,7 +114,7 @@ function Privacy() {
           </section>
 
           <section>
-            <h2>7. Cookies and Tracking</h2>
+            <h2>8. Cookies and Tracking</h2>
             <p>
               We use cookies and similar technologies to maintain your session, remember your preferences, 
               and analyze Service usage. You can control cookies through your browser settings.
@@ -107,7 +122,7 @@ function Privacy() {
           </section>
 
           <section>
-            <h2>8. Children's Privacy</h2>
+            <h2>9. Children's Privacy</h2>
             <p>
               The Service is not intended for users under the age of 18. We do not knowingly collect personal 
               information from children.
@@ -115,7 +130,7 @@ function Privacy() {
           </section>
 
           <section>
-            <h2>9. Changes to This Policy</h2>
+            <h2>10. Changes to This Policy</h2>
             <p>
               We may update this Privacy Policy from time to time. We will notify you of any material changes 
               by posting the new policy on this page and updating the "Last updated" date.
@@ -123,13 +138,13 @@ function Privacy() {
           </section>
 
           <section>
-            <h2>10. Contact Us</h2>
+            <h2>11. Contact Us</h2>
             <p>
               If you have questions about this Privacy Policy, please contact us at:
             </p>
             <p>
-              <strong>Email:</strong> support@watnew.com<br />
-              <strong>Website:</strong> <Link to="/">watnew.com</Link>
+              <strong>Email:</strong> <a href="mailto:help@watnew.me">help@watnew.me</a><br />
+              <strong>Website:</strong> <Link to="/">watnew.me</Link>
             </p>
           </section>
         </div>
